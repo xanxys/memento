@@ -30,7 +30,6 @@ class TweetIndex {
             }
             return tweet.full_text.indexOf(query) >= 0;
         }).map(tweet => {
-
             const date = new Date(tweet.created_at);
             return {
                 id: tweet.id_str,
@@ -74,15 +73,18 @@ function parseBrokenJsonFromDump(jsonString) {
 }
 
 function main() {
+
     Vue.use(SemanticUIVue);
 
     const maybeIndex = { index: null };
+    const MAX_NUM_RESULTS = 500;
     var app = new Vue({
         el: '#app',
         data: {
             indexLoaded: false,
             searchQuery: "",
             expandedTweetId: null,
+            focusYear: null,
         },
         methods: {
             onFileChange: function (event) {
@@ -96,6 +98,13 @@ function main() {
             },
             showRaw: function (tweetId) {
                 this.expandedTweetId = tweetId;
+            },
+            gotoYear: function (localYear) {
+                this.focusYear = localYear;
+                this.$nextTick(() => {
+                    // Need to wait until DOM gets updated by focusYear change.
+                    window.location.hash = 'section_' + localYear;
+                });
             },
         },
         computed: {
@@ -111,8 +120,31 @@ function main() {
                 }
                 return maybeIndex.index.search(this.searchQuery);
             },
+            // Truncate results around focusYear to optimize DOM rendering.
+            _beginIndex: function () {
+                if (this.filteredTweets.length <= MAX_NUM_RESULTS) {
+                    return 0;
+                }
+                const beginYear = (this.focusYear ? this.focusYear : new Date().getFullYear());
+                // Read a little bit of newer content for apparence of infinite scrolling.
+                // searchResult composition;
+                // * 1/4 of content of focusYear + 1
+                // * <last day of focusYear>
+                // * 3/4 of content of focusYear
+                return Math.max(0, this.filteredTweets.findIndex(tw => tw.localYear === beginYear) - Math.floor(MAX_NUM_RESULTS / 4));
+            },
+            // exclusive
+            _endIndex: function () {
+                return Math.min(this.filteredTweets.length, this._beginIndex + MAX_NUM_RESULTS);
+            },
             searchResults: function () {
-                return this.filteredTweets.slice(0, 1000); // DOM performance optimization
+                return this.filteredTweets.slice(this._beginIndex, this._endIndex);
+            },
+            numTruncatedPre: function () {
+                return this._beginIndex;
+            },
+            numTruncatedPost: function () {
+                return this.filteredTweets.length - this._endIndex;
             },
             years: function () {
                 const years = new Map();
