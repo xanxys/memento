@@ -9,13 +9,12 @@
 
 <body>
     <div id="app">
-
         <div class="ui left vertical menu visible sidebar">
             <a @click="gotoYear(year.text)" class="item" v-for="year in years">{{year.text}} <div class="ui teal label">
-                    {{year.numHits}}</div></a>
+                    {{year.numHits.toLocaleString()}}</div></a>
         </div>
 
-        <div class="ui fixed main menu">
+        <div class="ui top main menu fixed">
             <div class="ui icon input">
                 <input type="text" placeholder="Search..." v-model="searchQuery">
                 <i class="search icon"></i>
@@ -23,42 +22,42 @@
             Twitter Dump:
             <input type="file" @change="onFileChange" />
 
-            <div class="ui teal label"> {{numTotal}} tweets total</div>
+            <div class="ui teal label"> {{numTotal.toLocaleString()}} tweets total</div>
         </div>
 
-        <div class="pusher">
-            <!-- toolbar compenstion -->
-            <div style="height: 52px"></div>
-            <div class="ui container">
-                <div v-if="numTruncatedPre > 0">... {{numTruncatedPre}} tweets ...</div>
-                <!-- TODO: Fix id. It should be unique -->
-                <div v-for="searchResult in searchResults" class="ui card" style="width: 600px"
-                    :id="'section_' + searchResult.localYear">
-                    <div class="content">
-                        <div class="meta">
-                            <a target="_blank" :href="searchResult.url">{{searchResult.localDate}}</a>
-                            <span class="right floated" @click="showRaw(searchResult.id)">
-                                raw
-                            </span>
-                        </div>
-                        <div class="description">{{searchResult.text}}</div>
-                        <div class="ui four cards" v-if="searchResult.media.length > 0">
-                            <div class="card" v-for="url in searchResult.media">
-                                <div class="image"><img :src="url" /></div>
+        <div class="pusher" style="height: calc(100vh - 40px); top: 40px; position: fixed">
+            <div style="overflow-y: auto; height: 100%">
+                <div class="ui container" style="padding: 10px">
+                    <div v-if="numTruncatedPre > 0">... {{numTruncatedPre.toLocaleString()}} tweets ...</div>
+                    <!-- TODO: Fix id. It should be unique -->
+                    <div v-for="searchResult in searchResults" class="ui card" style="width: 600px"
+                        :id="'section_' + searchResult.localYear">
+                        <div class="content">
+                            <div class="meta">
+                                <a target="_blank" :href="searchResult.url">{{searchResult.localDate}}</a>
+                                <span class="right floated" @click="showRaw(searchResult.id)">
+                                    raw
+                                </span>
                             </div>
+                            <div class="description">{{searchResult.text}}</div>
+                            <div class="ui four cards" v-if="searchResult.media.length > 0">
+                                <div class="card" v-for="url in searchResult.media">
+                                    <div class="image"><img :src="url" /></div>
+                                </div>
+                            </div>
+
+                            <pre v-if="searchResult.id === expandedTweetId">{{searchResult.json}}</pre>
                         </div>
-
-                        <pre v-if="searchResult.id === expandedTweetId">{{searchResult.json}}</pre>
                     </div>
-                </div>
-                <div v-if="numTruncatedPost > 0">... {{numTruncatedPost}} tweets ...</div>
+                    <div v-if="numTruncatedPost > 0">... {{numTruncatedPost.toLocaleString()}} tweets ...</div>
 
-                <!-- special states -->
-                <div v-if="!indexLoaded">
-                    Loading
-                </div>
-                <div v-if="indexLoaded && searchResults.length === 0">
-                    Nothing found
+                    <!-- special states -->
+                    <div v-if="!indexLoaded">
+                        Loading
+                    </div>
+                    <div v-if="indexLoaded && searchResults.length === 0">
+                        Nothing found
+                    </div>
                 </div>
             </div>
         </div>
