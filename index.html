@@ -10,7 +10,7 @@
 <body>
     <div id="app">
         <div class="ui left vertical menu visible sidebar">
-            <a class="item" v-for="year in years">{{year.text}} - {{year.numHits}}</a>
+            <a class="item" v-for="year in years">{{year.text}} <div class="ui teal label">{{year.numHits}}</div></a>
         </div>
 
         <div class="pusher">
@@ -22,7 +22,7 @@
             <input type="file" @change="onFileChange" />
             Total: {{numTotal}} tweets
 
-            <div style="width: 600px">
+            <div class="ui container">
                 <div v-for="searchResult in searchResults" class="ui card" style="width: 600px">
                     <div class="content">
                         <div class="meta">
@@ -32,15 +32,22 @@
                             </span>
                         </div>
                         <div class="description">{{searchResult.text}}</div>
+                        <div class="ui four cards" v-if="searchResult.media.length > 0">
+                            <div class="card" v-for="url in searchResult.media">
+                                <div class="image"><img :src="url" /></div>
+                            </div>
+                        </div>
+
                         <pre v-if="searchResult.id === expandedTweetId">{{searchResult.json}}</pre>
                     </div>
                 </div>
-            </div>
-            <div v-if="!indexLoaded">
-                Loading
-            </div>
-            <div v-if="indexLoaded && searchResults.length === 0">
-                Nothing found
+                <!-- special states -->
+                <div v-if="!indexLoaded">
+                    Loading
+                </div>
+                <div v-if="indexLoaded && searchResults.length === 0">
+                    Nothing found
+                </div>
             </div>
         </div>
     </div>

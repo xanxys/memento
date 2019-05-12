@@ -39,6 +39,7 @@ class TweetIndex {
                 localDate: date.toLocaleDateString(),
                 url: "https://twitter.com/" + this.account.username + "/status/" + tweet.id_str,
                 json: JSON.stringify(tweet, " ", 2),
+                media: ((tweet.extended_entities && tweet.extended_entities.media) || []).map(m => m.media_url_https),
             };
         });
     }
