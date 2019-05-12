@@ -1,3 +1,4 @@
+import { htmlDecode } from "./util.js";
 
 /** Searchable on-memory immutable index of tweets. */
 class TweetIndex {
@@ -10,7 +11,7 @@ class TweetIndex {
         this.tweets = tweets;
 
         this.tweets.forEach(tweet => {
-            tweet.full_text = tweet.full_text.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")
+            tweet.full_text = htmlDecode(tweet.full_text);
         });
         console.log("Sample", this.tweets.slice(0, 10));
     }
