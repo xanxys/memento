@@ -20,12 +20,15 @@
             </div>
             Twitter Dump:
             <input type="file" @change="onFileChange" />
-            Total: {{tweets.length}} tweets
+            Total: {{numTotal}} tweets
 
             <div>
                 <div v-for="searchResult in searchResults" class="ui existing segment">
                     {{searchResult.text}}
                 </div>
+            </div>
+            <div v-if="searchResults.length === 0">
+                Nothing found
             </div>
         </div>
     </div>
