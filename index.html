@@ -9,20 +9,26 @@
 
 <body>
     <div id="app">
+
         <div class="ui left vertical menu visible sidebar">
             <a @click="gotoYear(year.text)" class="item" v-for="year in years">{{year.text}} <div class="ui teal label">
                     {{year.numHits}}</div></a>
         </div>
 
-        <div class="pusher">
+        <div class="ui fixed main menu">
             <div class="ui icon input">
                 <input type="text" placeholder="Search..." v-model="searchQuery">
                 <i class="search icon"></i>
             </div>
             Twitter Dump:
             <input type="file" @change="onFileChange" />
-            Total: {{numTotal}} tweets
 
+            <div class="ui teal label"> {{numTotal}} tweets total</div>
+        </div>
+
+        <div class="pusher">
+            <!-- toolbar compenstion -->
+            <div style="height: 52px"></div>
             <div class="ui container">
                 <div v-if="numTruncatedPre > 0">... {{numTruncatedPre}} tweets ...</div>
                 <!-- TODO: Fix id. It should be unique -->
