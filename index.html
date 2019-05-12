@@ -22,8 +22,9 @@
             <input type="file" @change="onFileChange" />
             Total: {{numTotal}} tweets
 
-            <div>
+            <div style="width: 600px">
                 <div v-for="searchResult in searchResults" class="ui existing segment">
+                    <a target="_blank" :href="searchResult.url">{{searchResult.localDate}}</a>
                     {{searchResult.text}}
                 </div>
             </div>

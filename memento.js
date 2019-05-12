@@ -5,8 +5,10 @@ class TweetIndex {
      * 
      * @param {Array<Object>} tweets Objects from tweet.json in newest-first order.
      */
-    constructor(tweets) {
+    constructor(account, tweets) {
+        this.account = account;
         this.tweets = tweets;
+        console.log("Sample", this.tweets.slice(0, 10));
     }
 
     /**
@@ -23,9 +25,13 @@ class TweetIndex {
             }
             return tweet.full_text.indexOf(query) >= 0;
         }).map(tweet => {
+
+            const date = new Date(tweet.created_at);
             return {
                 text: tweet.full_text,
-                localYear: new Date(tweet.created_at).getFullYear(),
+                localYear: date.getFullYear(),
+                localDate: date.toLocaleDateString(),
+                url: "https://twitter.com/" + this.account.username + "/status/" + tweet.id_str,
             };
         });
     }
@@ -38,15 +44,25 @@ class TweetIndex {
  */
 function createTweetIndexFromTwitterDump(stream) {
     return JSZip.loadAsync(stream)
-        .then(zip => zip.file("tweet.js").async("string"))
-        .then(tweetJson => {
-            tweetJson = tweetJson.replace("window.YTD.tweet.part0 =", "");
-            const tweets = JSON.parse(tweetJson);
+        .then(zip => {
+            console.log("Zip files", zip.files);
+            return Promise.all([zip.file("account.js").async("string"), zip.file("tweet.js").async("string")]);
+        })
+        .then(([accountJson, tweetJson]) => {
+            const account = parseBrokenJsonFromDump(accountJson);
+            const tweets = parseBrokenJsonFromDump(tweetJson);
             tweets.sort((a, b) => {
                 return new Date(b.created_at) - new Date(a.created_at);
             });  // newest first
-            return new TweetIndex(tweets);
+            return new TweetIndex(account, tweets);
         });
+}
+
+function parseBrokenJsonFromDump(jsonString) {
+    // e.g. "window.YTD.tweet.part0 = <proper JSON>"
+    const separator = " = ";
+    const varSubstIndex = jsonString.indexOf(separator);
+    return JSON.parse(varSubstIndex < 0 ? jsonString : jsonString.substr(varSubstIndex + separator.length));
 }
 
 function main() {
