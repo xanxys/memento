@@ -23,12 +23,23 @@
             Total: {{numTotal}} tweets
 
             <div style="width: 600px">
-                <div v-for="searchResult in searchResults" class="ui existing segment">
-                    <a target="_blank" :href="searchResult.url">{{searchResult.localDate}}</a>
-                    {{searchResult.text}}
+                <div v-for="searchResult in searchResults" class="ui card" style="width: 600px">
+                    <div class="content">
+                        <div class="meta">
+                            <a target="_blank" :href="searchResult.url">{{searchResult.localDate}}</a>
+                            <span class="right floated" @click="showRaw(searchResult.id)">
+                                raw
+                            </span>
+                        </div>
+                        <div class="description">{{searchResult.text}}</div>
+                        <pre v-if="searchResult.id === expandedTweetId">{{searchResult.json}}</pre>
+                    </div>
                 </div>
             </div>
-            <div v-if="searchResults.length === 0">
+            <div v-if="!indexLoaded">
+                Loading
+            </div>
+            <div v-if="indexLoaded && searchResults.length === 0">
                 Nothing found
             </div>
         </div>

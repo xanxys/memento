@@ -8,6 +8,10 @@ class TweetIndex {
     constructor(account, tweets) {
         this.account = account;
         this.tweets = tweets;
+
+        this.tweets.forEach(tweet => {
+            tweet.full_text = tweet.full_text.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")
+        });
         console.log("Sample", this.tweets.slice(0, 10));
     }
 
@@ -28,10 +32,12 @@ class TweetIndex {
 
             const date = new Date(tweet.created_at);
             return {
+                id: tweet.id_str,
                 text: tweet.full_text,
                 localYear: date.getFullYear(),
                 localDate: date.toLocaleDateString(),
                 url: "https://twitter.com/" + this.account.username + "/status/" + tweet.id_str,
+                json: JSON.stringify(tweet, " ", 2),
             };
         });
     }
@@ -74,6 +80,7 @@ function main() {
         data: {
             indexLoaded: false,
             searchQuery: "",
+            expandedTweetId: null,
         },
         methods: {
             onFileChange: function (event) {
@@ -84,6 +91,9 @@ function main() {
                     maybeIndex.index = index;
                     this.indexLoaded = true;
                 });
+            },
+            showRaw: function (tweetId) {
+                this.expandedTweetId = tweetId;
             },
         },
         computed: {
