@@ -1,6 +1,18 @@
 import { htmlDecode } from "./util.js";
 
-/** Searchable on-memory immutable index of tweets. */
+// P1: "like" id -> time guesser
+// https://developer.twitter.com/en/docs/basics/twitter-ids.html
+/**
+ * Searchable on-memory immutable index of tweets.
+ * 
+ * TimedEntity
+ *  - tweet (own) 
+ *  - TBD: like (someone else): ambiguous timestamp / no user (text only)
+ *  - TBD: DM (self / other), with proper timestamp (sender Id only)
+ *
+ * Non-timed entity
+ *  - follow (id only) / follower (id only) / block / mute
+ */
 class TweetIndex {
     /**
      * 
@@ -11,7 +23,7 @@ class TweetIndex {
         this.tweets = tweets;
 
         this.tweets.forEach(tweet => {
-            tweet.full_text = htmlDecode(tweet.full_text);
+            tweet.full_text = htmlDecode(tweet.tweet.full_text);
         });
         console.log("Sample", this.tweets.slice(0, 10));
     }
@@ -30,15 +42,15 @@ class TweetIndex {
             }
             return tweet.full_text.indexOf(query) >= 0;
         }).map(tweet => {
-            const date = new Date(tweet.created_at);
+            const date = new Date(tweet.tweet.created_at);
             return {
-                id: tweet.id_str,
-                text: tweet.full_text,
+                id: tweet.tweet.id_str,
+                text: tweet.tweet.full_text,
                 localYear: date.getFullYear(),
                 localDate: date.toLocaleDateString(),
-                url: "https://twitter.com/" + this.account.username + "/status/" + tweet.id_str,
+                url: "https://twitter.com/i/web/status/" + tweet.tweet.id_str,
                 json: JSON.stringify(tweet, " ", 2),
-                media: ((tweet.extended_entities && tweet.extended_entities.media) || []).map(m => m.media_url_https),
+                media: ((tweet.tweet.extended_entities && tweet.tweet.extended_entities.media) || []).map(m => m.media_url_https),
             };
         });
     }
@@ -53,11 +65,13 @@ function createTweetIndexFromTwitterDump(stream) {
     return JSZip.loadAsync(stream)
         .then(zip => {
             console.log("Zip files", zip.files);
-            return Promise.all([zip.file("account.js").async("string"), zip.file("tweet.js").async("string")]);
+            return Promise.all(["data/account.js", "data/tweet.js", "data/direct-messages.js"].map(fileName => zip.file(fileName).async("string")));
         })
-        .then(([accountJson, tweetJson]) => {
+        .then(([accountJson, tweetJson, likeJson]) => {
             const account = parseBrokenJsonFromDump(accountJson);
             const tweets = parseBrokenJsonFromDump(tweetJson);
+            const likes = parseBrokenJsonFromDump(likeJson);
+            console.log(likes);
             tweets.sort((a, b) => {
                 return new Date(b.created_at) - new Date(a.created_at);
             });  // newest first
